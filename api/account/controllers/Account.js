@@ -9,8 +9,12 @@
  *        在把user替换为account
  */
 
- const _ = require('lodash');
-
+const _ = require('lodash');
+const request = require('request');
+const qs = require('querystring');
+const cid = '3b4cffce76fbcf06c9a2';
+const csecret = '77333733f4ccb5941dd50363c837653a373bf113';
+const redirect_uri = 'http://192.168.0.106:8080/#/login';
 /**
  * verify is the mobile phone number?
  *
@@ -23,10 +27,9 @@ const isMobile = (number) => {
     return false;
   }
   return true;
-}
+};
 
 module.exports = {
-
   /**
   * user login 
   *
@@ -42,30 +45,32 @@ module.exports = {
 
     // present only support phone number
     const params = {
-      username: "",
-      password: "",
+      username: '',
+      password: '',
       ...ctx.request.body
-    }
+    };
 
     // params required
-    let errMsg = ""
+    let errMsg = '';
     Object.keys(params).forEach(v => {
       if(!params[v] && !errMsg){
         errMsg = `Please provide your ${v}`;
       }
-    })
+    });
 
     if(errMsg) return ctx.badRequest(null, errMsg);
 
     // fetch user
+
     const user = await strapi.models.account.where(params).fetch();
+
 
     if(!user){
       return ctx.badRequest(null, 'username or password invalid.');
     }
 
     if (user.role.type !== 'root' && ctx.request.admin) {
-      return ctx.badRequest(null, ctx.request.admin ? [{ messages: [{ id: 'Auth.form.error.noAdminAccess' }] }] : `You're not an administrator.`);
+      return ctx.badRequest(null, ctx.request.admin ? [{ messages: [{ id: 'Auth.form.error.noAdminAccess' }] }] : 'You\'re not an administrator.');
     }
 
     ctx.send({
@@ -74,6 +79,71 @@ module.exports = {
     });
   },
 
+  getGitUrl: async () => {
+   
+    return {
+      url: `https://github.com/login/oauth/authorize?client_id=${cid}&state=state&redirect_uri=${redirect_uri}`
+    };
+  },
+  gitReg: async(ctx) =>{
+    const {code} = ctx.request.body;
+    const url = 'https://github.com/login/oauth/access_token';
+    const body = qs.stringify({
+      client_id: cid,
+      client_secret: csecret,
+      code: code,
+      redirect_uri: redirect_uri
+    });
+    const promise = new Promise((resolve, reject) => {
+      request({ url: url, method: 'POST', body: body }, function (error, res, data) {
+        const access_token = data.split('&')[0].split('=')[1];
+        const getUserUrl = `https://api.github.com/user?access_token=${access_token}`;
+
+        // console.log(data,getUserUrl);
+        request({url: getUserUrl, method: 'GET',headers :{'User-Agent': 'gz-itcast'}}, function (error, res, data) {
+        
+          resolve(data);
+        });
+      });
+    });
+    const userinfo = await promise;
+    console.log(userinfo);
+    // 获取github的相关信息
+    const {login,id,node_id,avatar_url} = JSON.parse(userinfo);
+    let params = { 
+      username: id,
+      nickname: login,
+      password: node_id,
+      role: 2,
+      defaultAvatar: avatar_url
+    };
+    // 判断如果存在相同的id则跳过注册
+    let account = await strapi.models.account.where(params).fetch();
+    if(!account){  
+      console.log(params,111);
+      const _user = await strapi.services.account.add(params);
+      const user = await strapi.models.account.where({id: _user.toJSON().id}).fetch();
+  
+      const token = strapi.plugins['users-permissions'].services.jwt.issue(
+        _.pick(user.toJSON ? user.toJSON() : user, ['_id', 'id'])
+      );
+      console.log(token, _.omit(user.toJSON ? user.toJSON() : user, ['password', 'resetPasswordToken']));
+    }
+    const gitUser = await strapi.models.account.where(params).fetch();
+    console.log('?????????????',gitUser);
+    // console.log(strapi.plugins['users-permissions'].services.jwt.issue(_.pick(gitUser.toJSON ? gitUser.toJSON() : gitUser, ['_id', 'id'])),_.omit(gitUser.toJSON ? gitUser.toJSON() : gitUser, ['password', 'resetPasswordToken']));
+    ctx.send({
+      token: strapi.plugins['users-permissions'].services.jwt.issue(_.pick(gitUser.toJSON ? gitUser.toJSON() : gitUser, ['_id', 'id'])),
+      gitUser: _.omit(gitUser.toJSON ? gitUser.toJSON() : gitUser, ['password', 'resetPasswordToken'])
+    });
+    // ctx.send({
+    //   token,
+    //   user: _.omit(user.toJSON ? user.toJSON() : user, ['password', 'resetPasswordToken'])
+    // });
+    // return {
+    //   code
+    // };
+  },
   /**
    * custom register by phone verify
    *
@@ -91,7 +161,7 @@ module.exports = {
 
     // get plugin of 'users-permissions'
     const pluginStore = await strapi.store({
-      environment: "",
+      environment: '',
       type: 'plugin',
       name: 'users-permissions'
     });
@@ -107,20 +177,20 @@ module.exports = {
 
     // present only support phone number
     const params = {
-      username: "",
-      nickname: "",
-      captcha: "",
-      password: "",
+      username: '',
+      nickname: '',
+      captcha: '',
+      password: '',
       ...ctx.request.body
-    }
+    };
 
     // params required
-    let errMsg = ""
+    let errMsg = '';
     Object.keys(params).forEach(v => {
       if(!params[v] && !errMsg){
         errMsg = `Please provide your ${v}`;
       }
-    })
+    });
 
     if(errMsg) return ctx.badRequest(null, errMsg);
 
@@ -137,7 +207,7 @@ module.exports = {
     }
 
     params.role = role._id || role.id;
-    params.defaultAvatar = "/assets/images/avatar.jpg";
+    params.defaultAvatar = '/assets/images/avatar.jpg';
 
     // find account
     const {captcha, ...paramsProps} = params;
@@ -160,6 +230,7 @@ module.exports = {
     }
 
     try{
+      console.log(11111111111111,paramsProps);
       const _user = await strapi.services.account.add(paramsProps);
       const user = await strapi.models.account.where({id: _user.toJSON().id}).fetch();
 

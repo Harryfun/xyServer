@@ -228,6 +228,20 @@ module.exports = {
     return strapi.services.airorder.fetch(ctx.params);
   },
 
+  findByUser: async (ctx) => {
+
+    const {id} = ctx.state.user;
+
+    const _orders = await strapi.services.airorder.fetchAll({});
+    const orders = _orders.toJSON();
+
+    const newOrders = orders.filter(v => {
+      return v.account.id === +id;
+    });
+
+    return newOrders;
+  },
+
   /**
    * Count airorder records.
    *

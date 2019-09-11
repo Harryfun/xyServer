@@ -26,8 +26,8 @@
     },
     {
       "method": "GET",
-      "path": "/airorders/count",
-      "handler": "Airorder.count",
+      "path": "/airorders/findByUser",
+      "handler": "Airorder.findByUser",
       "config": {
         "policies": []
       }
@@ -36,6 +36,14 @@
       "method": "GET",
       "path": "/airorders/:id",
       "handler": "Airorder.findOne",
+      "config": {
+        "policies": []
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/airorders/user",
+      "handler": "Airorder.findByUser",
       "config": {
         "policies": []
       }

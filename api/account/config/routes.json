@@ -17,6 +17,22 @@
       }
     },
     {
+      "method": "GET",
+      "path": "/accounts/gitUrl",
+      "handler": "Account.getGitUrl",
+      "config": {
+        "policies": []
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/accounts/gitReg",
+      "handler": "Account.gitReg",
+      "config": {
+        "policies": []
+      }
+    },
+    {
       "method": "POST",
       "path": "/accounts/register",
       "handler": "Account.register",

@@ -66,7 +66,7 @@ module.exports = {
       }
 
       if (user.role.type !== 'root' && ctx.request.admin) {
-        return ctx.badRequest(null, ctx.request.admin ? [{ messages: [{ id: 'Auth.form.error.noAdminAccess' }] }] : `You're not an administrator.`);
+        return ctx.badRequest(null, ctx.request.admin ? [{ messages: [{ id: 'Auth.form.error.noAdminAccess' }] }] : 'You\'re not an administrator.');
       }
 
       // The user never authenticated with the `local` provider.
@@ -160,7 +160,7 @@ module.exports = {
 
     const Grant = require('grant-koa');
     const grant = new Grant(grantConfig);
-
+    console.dir(grant);
     return strapi.koaMiddlewares.compose(grant.middleware)(ctx, next);
   },
 
@@ -270,7 +270,7 @@ module.exports = {
     if (isEmail) {
       params.email = params.email.toLowerCase();
     }else{
-      params.email = `example@strapi.com`;
+      params.email = 'example@strapi.com';
     }
 
     params.role = role._id || role.id;
