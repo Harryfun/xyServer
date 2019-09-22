@@ -49,3 +49,13 @@ apidoc -i docs -o apidoc
 <https://sqlitebrowser.org/>
 
 > 可以打开sqlite数据库的软件很有很多，可以自行搜索
+
+## github第三方登录
++ github第三方登录需要配置redirect_uri
++ 故要修改后台代码中`api>account>Account.js line17`对应前端项目上线的地址以及github后台配置的地址。
++ 账号gz-itcast密码adad001122.
++ 登录github之后，点击小头像点击设置->最右侧选择最后开发者设置（Developer Settings）
++ 选择OAuth Apps
++ 选择闲云旅游
++ 注意： **第一次授权之后，后续使用github登录不会再跳转到github页面询问授权信息，而是直接返回，如果想要清除授权，点击Revoke all user tokens按钮即可**
++ 并修改**Homepage URL**和**Authorization callback URL**的地址为前端项目部署地址即可
