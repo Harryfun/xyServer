@@ -23,7 +23,7 @@
     "cross-env": "^5.2.0",
     "grant-koa": "^4.6.3",
     "knex": "latest",
-    "lodash": "^4.17.5",
+    "lodash": "^4.17.21",
     "node-fetch": "^2.3.0",
     "request": "^2.88.0",
     "sqlite3": "latest",
